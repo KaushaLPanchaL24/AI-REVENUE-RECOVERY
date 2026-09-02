@@ -1,0 +1,16 @@
+customer_id,name,type,avg_payment_lag_days,payment_lag_std_days,city
+CUST001,ABC Pvt Ltd,B2B,9.6,1.1,Delhi
+CUST002,Sunrise Textiles,B2B,3.7,1.6,Ahmedabad
+CUST003,Metro Traders,B2B,10.2,4.6,Ahmedabad
+CUST004,Kavya Enterprises,B2B,8.9,1.1,Ahmedabad
+CUST005,Bluewave Retail,B2B,3.3,3.0,Ahmedabad
+CUST006,Prakash & Sons,B2B,8.4,3.9,Pune
+CUST007,Nova Garments,B2B,6.3,2.8,Delhi
+CUST008,Silverline Corp,B2B,12.1,1.0,Mumbai
+CUST009,Ganga Distributors,B2B,10.5,2.4,Mumbai
+CUST010,Orbit Supplies,B2B,3.2,4.1,Ahmedabad
+CUST011,Vikram Traders,B2C,0,0,Ahmedabad
+CUST012,Delta Fabrics,B2C,0,0,Bangalore
+CUST013,Ritu Fashion House,B2C,0,0,Ahmedabad
+CUST014,Anand Wholesalers,B2C,0,0,Delhi
+CUST015,Zenith Mart,B2C,0,0,Delhi
