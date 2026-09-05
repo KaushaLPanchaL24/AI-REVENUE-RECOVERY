@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Revenue Copilot — Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0B0F14;
+    --panel: #131922;
+    --panel-border: #1F2733;
+    --text: #E8ECF1;
+    --muted: #7C8B9C;
+    --mint: #3DDC97;
+    --coral: #FF6B5E;
+    --amber: #F5A623;
+    --mint-dim: rgba(61,220,151,0.12);
+    --coral-dim: rgba(255,107,94,0.12);
+    --amber-dim: rgba(245,166,35,0.12);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding:32px;
+  }
+  .mono{font-family:'JetBrains Mono', monospace;}
+  .display{font-family:'Space Grotesk', sans-serif;}
+
+  header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:28px; flex-wrap:wrap; gap:16px;
+  }
+  .brand{display:flex; flex-direction:column; gap:4px;}
+  .brand .eyebrow{
+    color:var(--muted); font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .brand h1{font-size:24px; font-weight:600; letter-spacing:-0.01em;}
+  .run-btn{
+    background:var(--mint); color:#08150F; border:none; border-radius:6px;
+    padding:11px 20px; font-family:'Space Grotesk', sans-serif; font-weight:600;
+    font-size:14px; cursor:pointer; transition:transform 0.1s ease, opacity 0.1s ease;
+    margin-left:8px;
+  }
+  .run-btn:first-child{margin-left:0;}
+  .run-btn:hover{opacity:0.9;}
+  .run-btn:active{transform:scale(0.98);}
+  .run-btn:disabled{background:var(--panel-border); color:var(--muted); cursor:wait;}
+
+  .hero{
+    background:var(--panel); border:1px solid var(--panel-border); border-radius:10px;
+    padding:28px; margin-bottom:24px;
+    display:grid; grid-template-columns:280px 1fr; gap:32px;
+  }
+  .hero-stat .label{color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; font-family:'JetBrains Mono',monospace;}
+  .hero-stat .value{font-size:42px; font-weight:700; font-family:'Space Grotesk',sans-serif; color:var(--mint);}
+  .hero-stat .sub{color:var(--muted); font-size:13px; margin-top:6px;}
+
+  .chart{display:flex; flex-direction:column; justify-content:flex-end;}
+  .chart-label{color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px; font-family:'JetBrains Mono',monospace;}
+  .bars{display:flex; align-items:flex-end; gap:4px; height:120px;}
+  .bar-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:6px;}
+  .bar{
+    width:100%; background:var(--mint-dim); border-top:2px solid var(--mint);
+    border-radius:2px 2px 0 0; min-height:2px; transition:height 0.4s ease;
+  }
+  .bar-date{color:var(--muted); font-size:9px; font-family:'JetBrains Mono',monospace; white-space:nowrap;}
+
+  .scenarios{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:24px;
+  }
+  .scenario-card{
+    background:var(--panel); border:1px solid var(--panel-border); border-radius:10px;
+    padding:20px; display:flex; flex-direction:column; gap:14px; min-height:200px;
+  }
+  .scenario-card h2{font-size:15px; font-weight:600; font-family:'Space Grotesk',sans-serif;}
+  .scenario-card .count{color:var(--muted); font-size:12px; font-family:'JetBrains Mono',monospace;}
+  .item{
+    border-left:2px solid var(--panel-border); padding:8px 0 8px 12px; font-size:12.5px;
+  }
+  .item.risk-high{border-left-color:var(--coral);}
+  .item.risk-mid{border-left-color:var(--amber);}
+  .item.risk-low{border-left-color:var(--mint);}
+  .item .item-id{font-family:'JetBrains Mono',monospace; color:var(--text); font-weight:600;}
+  .item .item-amt{font-family:'JetBrains Mono',monospace; color:var(--muted); float:right;}
+  .item .item-cause{color:var(--muted); margin-top:3px; line-height:1.4;}
+  .item .item-conf{margin-top:4px; font-size:11px; font-family:'JetBrains Mono',monospace;}
+  .empty-state{color:var(--muted); font-size:12.5px; font-style:italic; padding:20px 0; text-align:center;}
+
+  .audit-section{
+    background:var(--panel); border:1px solid var(--panel-border); border-radius:10px;
+    padding:20px;
+  }
+  .audit-section h2{font-size:15px; font-weight:600; font-family:'Space Grotesk',sans-serif; margin-bottom:14px;}
+  .audit-log{
+    max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:2px;
+  }
+  .audit-row{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; padding:5px 8px;
+    border-radius:4px; display:grid; grid-template-columns:150px 90px 100px 1fr; gap:10px;
+    align-items:center;
+  }
+  .audit-row:nth-child(odd){background:rgba(255,255,255,0.02);}
+  .audit-row .ts{color:var(--muted);}
+  .audit-row .stage{
+    text-transform:uppercase; font-size:10px; padding:2px 6px; border-radius:3px;
+    text-align:center; font-weight:600;
+  }
+  .stage-detect{background:var(--coral-dim); color:var(--coral);}
+  .stage-diagnose{background:var(--amber-dim); color:var(--amber);}
+  .stage-decide{background:rgba(124,139,156,0.15); color:var(--muted);}
+  .stage-act{background:var(--mint-dim); color:var(--mint);}
+  .stage-verify{background:rgba(124,139,156,0.15); color:var(--text);}
+  .audit-row .item-id-col{color:var(--text);}
+  .audit-row .detail{color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+  .status-line{color:var(--muted); font-size:12px; margin-top:8px; font-family:'JetBrains Mono',monospace;}
+  .status-line.error{color:var(--coral);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="eyebrow">AI Merchant Revenue Copilot</div>
+    <h1>Recovery Command Center</h1>
+  </div>
+  <div>
+    <button class="run-btn" id="runBtn" onclick="runAll()">Run Agent Cycle</button>
+    <button class="run-btn" id="reconcileBtn" onclick="runReconciliation()" style="background:var(--amber); color:#2B1B00;">Run Reconciliation</button>
+    <button class="run-btn" id="resetBtn" onclick="resetState()" style="background:transparent; border:1px solid var(--panel-border); color:var(--muted);">Reset</button>
+    <div class="status-line" id="statusLine">Backend: connecting...</div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-stat">
+    <div class="label">Total Expected Recovery</div>
+    <div class="value mono" id="totalRecovery">₹0</div>
+    <div class="sub" id="totalSub">Run the agent cycle to detect at-risk revenue</div>
+  </div>
+  <div class="chart">
+    <div class="chart-label">14-Day Cash Forecast</div>
+    <div class="bars" id="forecastBars"></div>
+  </div>
+</div>
+
+<div class="scenarios">
+  <div class="scenario-card">
+    <h2>Receivables Chaser</h2>
+    <div class="count" id="receivablesCount">0 overdue invoices</div>
+    <div id="receivablesItems"><div class="empty-state">No data yet — run the cycle</div></div>
+  </div>
+  <div class="scenario-card">
+    <h2>Failed Payment Retry</h2>
+    <div class="count" id="failedCount">0 failed transactions</div>
+    <div id="failedItems"><div class="empty-state">No data yet — run the cycle</div></div>
+  </div>
+  <div class="scenario-card">
+    <h2>Checkout Abandonment</h2>
+    <div class="count" id="abandonmentCount">0 abandoned carts</div>
+    <div id="abandonmentItems"><div class="empty-state">No data yet — run the cycle</div></div>
+  </div>
+  <div class="scenario-card">
+    <h2>Fraud &amp; Risk</h2>
+    <div class="count" id="fraudCount">0 flagged transactions</div>
+    <div id="fraudItems"><div class="empty-state">No data yet — run the cycle</div></div>
+  </div>
+</div>
+
+<div class="audit-section" style="margin-bottom:24px;">
+  <h2>Fraud Detection Accuracy</h2>
+  <div style="display:flex; gap:32px; flex-wrap:wrap;">
+    <div>
+      <div class="chart-label" style="margin-bottom:4px;">Precision</div>
+      <div class="hero-stat value mono" id="fraudPrecision" style="font-size:28px;">—</div>
+    </div>
+    <div>
+      <div class="chart-label" style="margin-bottom:4px;">Recall</div>
+      <div class="hero-stat value mono" id="fraudRecall" style="font-size:28px;">—</div>
+    </div>
+    <div>
+      <div class="chart-label" style="margin-bottom:4px;">F1 Score</div>
+      <div class="hero-stat value mono" id="fraudF1" style="font-size:28px; color:var(--text);">—</div>
+    </div>
+    <div>
+      <div class="chart-label" style="margin-bottom:4px;">Confusion Matrix</div>
+      <div class="mono" id="fraudMatrix" style="font-size:12px; color:var(--muted);">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="audit-section" style="margin-bottom:24px;">
+  <h2>Reconciliation</h2>
+  <div style="display:flex; gap:32px; margin-bottom:16px; flex-wrap:wrap;">
+    <div>
+      <div class="chart-label" style="margin-bottom:4px;">Match Rate</div>
+      <div class="hero-stat value mono" id="matchRate" style="font-size:28px;">—</div>
+    </div>
+    <div>
+      <div class="chart-label" style="margin-bottom:4px;">Matched Amount</div>
+      <div class="hero-stat value mono" id="matchedAmount" style="font-size:28px; color:var(--text);">—</div>
+    </div>
+    <div>
+      <div class="chart-label" style="margin-bottom:4px;">Exceptions</div>
+      <div class="hero-stat value mono" id="exceptionCount" style="font-size:28px; color:var(--coral);">—</div>
+    </div>
+  </div>
+  <div id="exceptionsList"><div class="empty-state">Run reconciliation to see exceptions</div></div>
+</div>
+
+<div class="audit-section">
+  <h2>Live Audit Trail</h2>
+  <div class="audit-log" id="auditLog">
+    <div class="empty-state">No audit entries yet</div>
+  </div>
+</div>
+
+<script>
+const API_BASE = "http://localhost:8000";
+
+function fmtCurrency(n){
+  return "₹" + Math.round(n).toLocaleString("en-IN");
+}
+
+function riskClass(confidence){
+  if (confidence >= 0.6) return "risk-low";
+  if (confidence >= 0.3) return "risk-mid";
+  return "risk-high";
+}
+
+function riskClassInverted(confidence){
+  // For fraud: HIGH confidence = HIGH risk (opposite of recovery scenarios)
+  if (confidence >= 0.7) return "risk-high";
+  if (confidence >= 0.5) return "risk-mid";
+  return "risk-low";
+}
+
+function renderItems(containerId, countId, items, countLabel, inverted = false){
+  const container = document.getElementById(containerId);
+  const countEl = document.getElementById(countId);
+  countEl.textContent = `${items.length} ${countLabel}`;
+
+  if (items.length === 0){
+    container.innerHTML = '<div class="empty-state">Nothing at risk right now</div>';
+    return;
+  }
+
+  const classify = inverted ? riskClassInverted : riskClass;
+  const confLabel = inverted ? "risk score" : "confidence";
+
+  container.innerHTML = items.map(item => `
+    <div class="item ${classify(item.confidence)}">
+      <span class="item-id">${item.item_id}</span>
+      <span class="item-amt">${fmtCurrency(item.amount)}</span>
+      <div class="item-cause">${item.cause}</div>
+      <div class="item-conf">${confLabel}: ${Math.round(item.confidence * 100)}% · ${item.action.replace(/_/g,' ')}</div>
+    </div>
+  `).join("");
+}
+
+function renderForecast(timeline){
+  const maxVal = Math.max(...timeline.map(t => t.expected_inflow), 1);
+  const bars = document.getElementById("forecastBars");
+  bars.innerHTML = timeline.map(t => {
+    const heightPct = Math.max(2, (t.expected_inflow / maxVal) * 100);
+    const dateLabel = t.date.slice(5); // MM-DD
+    return `
+      <div class="bar-wrap" title="${fmtCurrency(t.expected_inflow)} on ${t.date}">
+        <div class="bar" style="height:${heightPct}%"></div>
+        <div class="bar-date">${dateLabel}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderAudit(entries){
+  const log = document.getElementById("auditLog");
+  if (entries.length === 0){
+    log.innerHTML = '<div class="empty-state">No audit entries yet</div>';
+    return;
+  }
+  const sorted = [...entries].sort((a,b) => a.timestamp.localeCompare(b.timestamp));
+  log.innerHTML = sorted.map(e => `
+    <div class="audit-row">
+      <span class="ts">${e.timestamp.split("T")[1]?.slice(0,12) || e.timestamp}</span>
+      <span class="stage stage-${e.stage}">${e.stage}</span>
+      <span class="item-id-col">${e.item_id}</span>
+      <span class="detail">${e.detail}</span>
+    </div>
+  `).join("");
+  log.scrollTop = log.scrollHeight;
+}
+
+function exceptionBadgeClass(type){
+  if (type === "matched") return "risk-low";
+  if (type === "amount_mismatch" || type === "duplicate_settlement") return "risk-mid";
+  return "risk-high"; // missing_settlement, orphan_settlement
+}
+
+function renderExceptions(exceptions){
+  const container = document.getElementById("exceptionsList");
+  if (exceptions.length === 0){
+    container.innerHTML = '<div class="empty-state">No exceptions — everything reconciled cleanly</div>';
+    return;
+  }
+  container.innerHTML = exceptions.map(exc => `
+    <div class="item ${exceptionBadgeClass(exc.type)}">
+      <span class="item-id">${exc.reference_id}</span>
+      <span class="item-amt">${exc.type.replace(/_/g,' ')}</span>
+      <div class="item-cause">${exc.detail}</div>
+    </div>
+  `).join("");
+}
+
+async function runReconciliation(){
+  const btn = document.getElementById("reconcileBtn");
+  const status = document.getElementById("statusLine");
+  btn.disabled = true;
+  btn.textContent = "Reconciling...";
+  status.textContent = "Matching settlements against expected records...";
+  status.className = "status-line";
+
+  try {
+    const res = await fetch(`${API_BASE}/reconcile`);
+    if (!res.ok) throw new Error(`reconcile failed: ${res.status}`);
+    const data = await res.json();
+
+    document.getElementById("matchRate").textContent = `${(data.match_rate * 100).toFixed(1)}%`;
+    document.getElementById("matchedAmount").textContent = fmtCurrency(data.matched_amount);
+    document.getElementById("exceptionCount").textContent = data.exception_count;
+    renderExceptions(data.exceptions);
+
+    status.textContent = `Reconciliation complete: ${new Date().toLocaleTimeString()}`;
+  } catch (err) {
+    status.textContent = `Error: ${err.message}. Is the backend running on ${API_BASE}?`;
+    status.className = "status-line error";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Run Reconciliation";
+  }
+}
+
+async function runAll(){
+  const btn = document.getElementById("runBtn");
+  const status = document.getElementById("statusLine");
+  btn.disabled = true;
+  btn.textContent = "Running...";
+  status.textContent = "Running detect → diagnose → decide → act → verify...";
+  status.className = "status-line";
+
+  try {
+    const runRes = await fetch(`${API_BASE}/run-all`);
+    if (!runRes.ok) throw new Error(`run-all failed: ${runRes.status}`);
+    const runData = await runRes.json();
+
+    renderItems("receivablesItems", "receivablesCount", runData.scenarios.receivables.items, "overdue invoices");
+    renderItems("failedItems", "failedCount", runData.scenarios.failed_payments.items, "failed transactions");
+    renderItems("abandonmentItems", "abandonmentCount", runData.scenarios.abandonment.items, "abandoned carts");
+    renderItems("fraudItems", "fraudCount", runData.scenarios.fraud_risk.items, "flagged transactions", true);
+
+    document.getElementById("totalRecovery").textContent = fmtCurrency(runData.total_expected_recovery);
+    document.getElementById("totalSub").textContent = "Across receivables, failed payments & checkout abandonment";
+
+    const timelineRes = await fetch(`${API_BASE}/forecast/timeline`);
+    const timelineData = await timelineRes.json();
+    renderForecast(timelineData.timeline);
+
+    const auditRes = await fetch(`${API_BASE}/audit`);
+    const auditData = await auditRes.json();
+    renderAudit(auditData.audit_log);
+
+    const fraudMetricsRes = await fetch(`${API_BASE}/fraud/evaluate`);
+    const fraudMetrics = await fraudMetricsRes.json();
+    document.getElementById("fraudPrecision").textContent = `${(fraudMetrics.precision * 100).toFixed(1)}%`;
+    document.getElementById("fraudRecall").textContent = `${(fraudMetrics.recall * 100).toFixed(1)}%`;
+    document.getElementById("fraudF1").textContent = fraudMetrics.f1_score.toFixed(2);
+    document.getElementById("fraudMatrix").textContent =
+      `TP:${fraudMetrics.true_positives} FP:${fraudMetrics.false_positives} TN:${fraudMetrics.true_negatives} FN:${fraudMetrics.false_negatives}`;
+
+    status.textContent = `Last run: ${new Date().toLocaleTimeString()}`;
+  } catch (err) {
+    status.textContent = `Error: ${err.message}. Is the backend running on ${API_BASE}?`;
+    status.className = "status-line error";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Run Agent Cycle";
+  }
+}
+
+async function resetState(){
+  const status = document.getElementById("statusLine");
+  try {
+    const res = await fetch(`${API_BASE}/reset`, { method: "POST" });
+    if (!res.ok) throw new Error(`reset failed: ${res.status}`);
+    document.getElementById("totalRecovery").textContent = "₹0";
+    document.getElementById("totalSub").textContent = "Run the agent cycle to detect at-risk revenue";
+    document.getElementById("forecastBars").innerHTML = "";
+    renderItems("receivablesItems", "receivablesCount", [], "overdue invoices");
+    renderItems("failedItems", "failedCount", [], "failed transactions");
+    renderItems("abandonmentItems", "abandonmentCount", [], "abandoned carts");
+    renderItems("fraudItems", "fraudCount", [], "flagged transactions", true);
+    document.getElementById("fraudPrecision").textContent = "—";
+    document.getElementById("fraudRecall").textContent = "—";
+    document.getElementById("fraudF1").textContent = "—";
+    document.getElementById("fraudMatrix").textContent = "—";
+    renderAudit([]);
+    document.getElementById("matchRate").textContent = "—";
+    document.getElementById("matchedAmount").textContent = "—";
+    document.getElementById("exceptionCount").textContent = "—";
+    renderExceptions([]);
+    status.textContent = "State reset. Click \"Run Agent Cycle\" for a fresh run.";
+    status.className = "status-line";
+  } catch (err) {
+    status.textContent = `Reset failed: ${err.message}`;
+    status.className = "status-line error";
+  }
+}
+
+// Check backend connectivity on load
+(async function checkBackend(){
+  const status = document.getElementById("statusLine");
+  try {
+    const res = await fetch(`${API_BASE}/`);
+    if (res.ok){
+      status.textContent = "Backend connected. Click \"Run Agent Cycle\" to begin.";
+    }
+  } catch (err) {
+    status.textContent = `Cannot reach backend at ${API_BASE}. Make sure uvicorn is running.`;
+    status.className = "status-line error";
+  }
+})();
+</script>
+
+</body>
+</html>
